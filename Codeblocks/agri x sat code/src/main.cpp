@@ -12,7 +12,7 @@ int indicator2 = 0;
 
 void setup()
 {
-  Serial.begin(9600);
+  
   // downlink.begin(9600);
   // downlink.println();
   pinMode(commandready, INPUT_PULLUP);
@@ -34,6 +34,9 @@ void loop()
       OBCComms.begin(9600);
       String message = OBCComms.readStringUntil('~');
       OBCComms.end();
+      Serial.begin(9600);
+      Serial.println(message);
+      Serial.end();
       delay(50);
       downlink.begin(9600);
       delay(50);
