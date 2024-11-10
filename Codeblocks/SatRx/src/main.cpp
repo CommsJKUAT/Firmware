@@ -1,7 +1,8 @@
-
+#include <Arduino.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
 #include <SoftwareSerial.h>
+#include <ArduinoJson.h>
 
 // Define LoRa SoftwareSerial pins
 #define RX_PIN 14  // Receive pin for LoRa
@@ -9,6 +10,9 @@
 #define ledgreen 6
 #define ledred 7
 #define buzzer 8
+
+int indicator1=0;
+int indicator2=0;
 // Create SoftwareSerial object for LoRa communication
 SoftwareSerial mySerial(RX_PIN, TX_PIN);
 
@@ -29,8 +33,7 @@ const char* serverName11 = "https://agroxsat.onrender.com/backendapi/smoke/";
 char jsonPayload[10000];  // Buffer for received payload
 
 void setup() {
-  Serial.begin(9600);
-  mySerial.begin(9600);  // Initialize SoftwareSerial for LoRa
+  
   digitalWrite(ledgreen,LOW);
   digitalWrite(ledred,LOW);
   digitalWrite(buzzer,LOW);
@@ -46,58 +49,260 @@ void setup() {
 
   Serial.println("Receiver is ready. Waiting for data...");
 }
-
-void loop() {
-
-
-  if (mySerial.available()) {
-    // Read the entire payload from LoRa
-    String loRaPayload = mySerial.readString();
-
-    // Clean up the payload by removing any newline or carriage return characters
-    loRaPayload.replace("\n", "");  // Remove newline characters
-    loRaPayload.replace("\r", "");  // Remove carriage return characters
-
-    Serial.print("Received via LoRa: ");
-    Serial.println(loRaPayload);
-    int index = loRaPayload.indexOf('=');
-    String parameter = loRaPayload.substring(0, index);
-    Serial.println(loRaPayload);
-    
-    if(parameter == "temperature"){
-        handletemperatureData(loRaPayload);
-    }
-    else if(parameter == "images"){
-        handleimageData(loRaPayload);
-    }
-    else if(parameter == "location"){
-        handlelocationData(loRaPayload);
-    }
-    else if(parameter == "smoke"){
-        handlesmokeData(loRaPayload);
-    }
-    else if(parameter == "batt"){
-        handlebattData(loRaPayload);
-    }
-    else if(parameter == "mapgs"){
-        handlemapgsData(loRaPayload);
-    }
-    else if(parameter == "soilprec"){
-        handlesoilprecData(loRaPayload);
-    }
-    else if(parameter == "humidity"){
-        handlehumidityData(loRaPayload);
-    }
-    else if(parameter == "soilph"){
-        handlesoilphData(loRaPayload);
-    }
-    // Parse and format the data
-    
+// Function to extract values from the incoming payload
+String getValue(String data, String key) {
+  int startIndex = data.indexOf(key) + key.length();
+  int endIndex = data.indexOf("&", startIndex);
+  if (endIndex == -1) {
+    endIndex = data.length();
+  }
+  return data.substring(startIndex, endIndex); // Return substring as String
+}
+bool sendDatasoilphToAPI(String jsonData) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi not connected");
+    return false;
   }
 
-  delay(1000);  // Add a delay to avoid flooding the loop
+  HTTPClient http;
+  http.begin(serverName7);  // Specify the API endpoint
+  http.addHeader("Content-Type", "application/json");  // Set content-type header
+
+  // Send HTTP POST request
+  int httpResponseCode = http.POST(jsonData);
+
+  // Check the response code
+  if (httpResponseCode > 0) {
+    String response = http.getString();  // Get server response
+    Serial.print("Response from server: ");
+    Serial.println(response);
+    http.end();  // Close connection
+    return true;
+  } else {
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+    http.end();  // Close connection
+    return false;
+  }
+}
+bool sendDatahumidityToAPI(String jsonData) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi not connected");
+    return false;
+  }
+
+  HTTPClient http;
+  http.begin(serverName6);  // Specify the API endpoint
+  http.addHeader("Content-Type", "application/json");  // Set content-type header
+
+  // Send HTTP POST request
+  int httpResponseCode = http.POST(jsonData);
+
+  // Check the response code
+  if (httpResponseCode > 0) {
+    String response = http.getString();  // Get server response
+    Serial.print("Response from server: ");
+    Serial.println(response);
+    http.end();  // Close connection
+    return true;
+  } else {
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+    http.end();  // Close connection
+    return false;
+  }
+}
+bool sendDataimagesToAPI(String jsonData) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi not connected");
+    return false;
+  }
+
+  HTTPClient http;
+  http.begin(serverName1);  // Specify the API endpoint
+  http.addHeader("Content-Type", "application/json");  // Set content-type header
+
+  // Send HTTP POST request
+  int httpResponseCode = http.POST(jsonData);
+
+  // Check the response code
+  if (httpResponseCode > 0) {
+    String response = http.getString();  // Get server response
+    Serial.print("Response from server: ");
+    Serial.println(response);
+    http.end();  // Close connection
+    return true;
+  } else {
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+    http.end();  // Close connection
+    return false;
+  }
+}
+bool sendDatalocationToAPI(String jsonData) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi not connected");
+    return false;
+  }
+
+  HTTPClient http;
+  http.begin(serverName2);  // Specify the API endpoint
+  http.addHeader("Content-Type", "application/json");  // Set content-type header
+
+  // Send HTTP POST request
+  int httpResponseCode = http.POST(jsonData);
+
+  // Check the response code
+  if (httpResponseCode > 0) {
+    String response = http.getString();  // Get server response
+    Serial.print("Response from server: ");
+    Serial.println(response);
+    http.end();  // Close connection
+    return true;
+  } else {
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+    http.end();  // Close connection
+    return false;
+  }
+}
+bool sendDatasmokeToAPI(String jsonData) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi not connected");
+    return false;
+  }
+
+  HTTPClient http;
+  http.begin(serverName11);  // Specify the API endpoint
+  http.addHeader("Content-Type", "application/json");  // Set content-type header
+
+  // Send HTTP POST request
+  int httpResponseCode = http.POST(jsonData);
+
+  // Check the response code
+  if (httpResponseCode > 0) {
+    String response = http.getString();  // Get server response
+    Serial.print("Response from server: ");
+    Serial.println(response);
+    http.end();  // Close connection
+    return true;
+  } else {
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+    http.end();  // Close connection
+    return false;
+  }
 }
 
+bool sendDatamapgsToAPI(String jsonData) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi not connected");
+    return false;
+  }
+
+  HTTPClient http;
+  http.begin(serverName4);  // Specify the API endpoint
+  http.addHeader("Content-Type", "application/json");  // Set content-type header
+
+  // Send HTTP POST request
+  int httpResponseCode = http.POST(jsonData);
+
+  // Check the response code
+  if (httpResponseCode > 0) {
+    String response = http.getString();  // Get server response
+    Serial.print("Response from server: ");
+    Serial.println(response);
+    http.end();  // Close connection
+    return true;
+  } else {
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+    http.end();  // Close connection
+    return false;
+  }
+}
+bool sendDatabattToAPI(String jsonData) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi not connected");
+    return false;
+  }
+
+  HTTPClient http;
+  http.begin(serverName9);  // Specify the API endpoint
+  http.addHeader("Content-Type", "application/json");  // Set content-type header
+
+  // Send HTTP POST request
+  int httpResponseCode = http.POST(jsonData);
+
+  // Check the response code
+  if (httpResponseCode > 0) {
+    String response = http.getString();  // Get server response
+    Serial.print("Response from server: ");
+    Serial.println(response);
+    http.end();  // Close connection
+    return true;
+  } else {
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+    http.end();  // Close connection
+    return false;
+  }
+}
+bool sendDatasoilprecToAPI(String jsonData) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi not connected");
+    return false;
+  }
+
+  HTTPClient http;
+  http.begin(serverName8);  // Specify the API endpoint
+  http.addHeader("Content-Type", "application/json");  // Set content-type header
+
+  // Send HTTP POST request
+  int httpResponseCode = http.POST(jsonData);
+
+  // Check the response code
+  if (httpResponseCode > 0) {
+    String response = http.getString();  // Get server response
+    Serial.print("Response from server: ");
+    Serial.println(response);
+    http.end();  // Close connection
+    return true;
+  } else {
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+    http.end();  // Close connection
+    return false;
+  }
+}
+
+bool sendDatatemperatureToAPI(String jsonData) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi not connected");
+    return false;
+  }
+
+  HTTPClient http;
+  http.begin(serverName5);  // Specify the API endpoint
+  http.addHeader("Content-Type", "application/json");  // Set content-type header
+
+  // Send HTTP POST request
+  int httpResponseCode = http.POST(jsonData);
+
+  // Check the response code
+  if (httpResponseCode > 0) {
+    String response = http.getString();  // Get server response
+    Serial.print("Response from server: ");
+    Serial.println(response);
+    http.end();  // Close connection
+    return true;
+  } else {
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+    http.end();  // Close connection
+    return false;
+  }
+}
 // Function to parse and format the received data
 void handleimageData(String payload) {
   String image = getValue(payload, "image=");
@@ -289,260 +494,120 @@ void handlehumidityData(String payload) {
     Serial.println("Failed to send data to API.");
   }
 }
-
-
-// Function to extract values from the incoming payload
-String getValue(String data, String key) {
-  int startIndex = data.indexOf(key) + key.length();
-  int endIndex = data.indexOf("&", startIndex);
-  if (endIndex == -1) {
-    endIndex = data.length();
-  }
-  return data.substring(startIndex, endIndex); // Return substring as String
-}
-
 // Function to send the formatted JSON to the API endpoint
-bool sendDatasmokeToAPI(String jsonData) {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi not connected");
-    return false;
-  }
 
-  HTTPClient http;
-  http.begin(serverName11);  // Specify the API endpoint
-  http.addHeader("Content-Type", "application/json");  // Set content-type header
 
-  // Send HTTP POST request
-  int httpResponseCode = http.POST(jsonData);
+void fetchData() {
+  if (WiFi.status() == WL_CONNECTED) { 
+    HTTPClient http;
+    String url = "https://agroxsat.onrender.com/backendapi/command/";
+    http.begin(url);  
+    int httpResponseCode = http.GET();
 
-  // Check the response code
-  if (httpResponseCode > 0) {
-    String response = http.getString();  // Get server response
-    Serial.print("Response from server: ");
-    Serial.println(response);
-    http.end();  // Close connection
-    return true;
+    if (httpResponseCode > 0) {
+      String response = http.getString(); 
+      Serial.begin(9600);
+           
+
+      DynamicJsonDocument doc(1024); 
+      DeserializationError error = deserializeJson(doc, response);
+
+      if (!error) {
+        // Check if the command field exists and is not null
+        if (!doc["command"].isNull()) {
+          String command = doc["command"]; 
+          Serial.print("Command: ");
+          Serial.println(command);
+          Serial.end();
+          mySerial.begin(9600);
+          delay(10);
+          mySerial.println("command~");
+          command + "~";
+          Serial.begin(9600);
+          Serial.println(command);
+          Serial.end();
+          while (mySerial.available())
+          {
+            String status=mySerial.readStringUntil('~');
+            if (status=="received")
+            {
+              mySerial.println(command);
+            }
+            
+          }
+          
+          mySerial.end();
+
+        } else {
+          Serial.println("Command is null or not available.");
+        }
+      } else {
+        Serial.print("JSON Deserialization Error: ");
+        Serial.println(error.f_str());
+      }
+    } else {
+      Serial.print("Error on HTTP request: ");
+      Serial.println(httpResponseCode);
+    }
+
+    http.end(); 
   } else {
-    Serial.print("Error on sending POST: ");
-    Serial.println(httpResponseCode);
-    http.end();  // Close connection
-    return false;
+    Serial.println("WiFi not connected");
   }
 }
 
-bool sendDatamapgsToAPI(String jsonData) {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi not connected");
-    return false;
+
+void loop() {
+  if(millis() >= 10000){
+      indicator1 = millis();
+      fetchData();
+     
   }
 
-  HTTPClient http;
-  http.begin(serverName4);  // Specify the API endpoint
-  http.addHeader("Content-Type", "application/json");  // Set content-type header
+  //if (mySerial.available()) {
+  //  // Read the entire payload from LoRa
+  //  String loRaPayload = mySerial.readString();
+//
+  //  // Clean up the payload by removing any newline or carriage return characters
+  //  loRaPayload.replace("\n", "");  // Remove newline characters
+  //  loRaPayload.replace("\r", "");  // Remove carriage return characters
+//
+  //  Serial.print("Received via LoRa: ");
+  //  Serial.println(loRaPayload);
+  //  int index = loRaPayload.indexOf('=');
+  //  String parameter = loRaPayload.substring(0, index);
+  //  Serial.println(loRaPayload);
+  //  
+  //  if(parameter == "temperature"){
+  //      handletemperatureData(loRaPayload);
+  //  }
+  //  else if(parameter == "images"){
+  //      handleimageData(loRaPayload);
+  //  }
+  //  else if(parameter == "location"){
+  //      handlelocationData(loRaPayload);
+  //  }
+  //  else if(parameter == "smoke"){
+  //      handlesmokeData(loRaPayload);
+  //  }
+  //  else if(parameter == "batt"){
+  //      handlebattData(loRaPayload);
+  //  }
+  //  else if(parameter == "mapgs"){
+  //      handlemapgsData(loRaPayload);
+  //  }
+  //  else if(parameter == "soilprec"){
+  //      handlesoilprecData(loRaPayload);
+  //  }
+  //  else if(parameter == "humidity"){
+  //      handlehumidityData(loRaPayload);
+  //  }
+  //  else if(parameter == "soilph"){
+  //      handlesoilphData(loRaPayload);
+  //  }
+    
+    
+  //}
 
-  // Send HTTP POST request
-  int httpResponseCode = http.POST(jsonData);
-
-  // Check the response code
-  if (httpResponseCode > 0) {
-    String response = http.getString();  // Get server response
-    Serial.print("Response from server: ");
-    Serial.println(response);
-    http.end();  // Close connection
-    return true;
-  } else {
-    Serial.print("Error on sending POST: ");
-    Serial.println(httpResponseCode);
-    http.end();  // Close connection
-    return false;
-  }
-}
-bool sendDatabattToAPI(String jsonData) {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi not connected");
-    return false;
-  }
-
-  HTTPClient http;
-  http.begin(serverName9);  // Specify the API endpoint
-  http.addHeader("Content-Type", "application/json");  // Set content-type header
-
-  // Send HTTP POST request
-  int httpResponseCode = http.POST(jsonData);
-
-  // Check the response code
-  if (httpResponseCode > 0) {
-    String response = http.getString();  // Get server response
-    Serial.print("Response from server: ");
-    Serial.println(response);
-    http.end();  // Close connection
-    return true;
-  } else {
-    Serial.print("Error on sending POST: ");
-    Serial.println(httpResponseCode);
-    http.end();  // Close connection
-    return false;
-  }
-}
-bool sendDatasoilprecToAPI(String jsonData) {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi not connected");
-    return false;
-  }
-
-  HTTPClient http;
-  http.begin(serverName8);  // Specify the API endpoint
-  http.addHeader("Content-Type", "application/json");  // Set content-type header
-
-  // Send HTTP POST request
-  int httpResponseCode = http.POST(jsonData);
-
-  // Check the response code
-  if (httpResponseCode > 0) {
-    String response = http.getString();  // Get server response
-    Serial.print("Response from server: ");
-    Serial.println(response);
-    http.end();  // Close connection
-    return true;
-  } else {
-    Serial.print("Error on sending POST: ");
-    Serial.println(httpResponseCode);
-    http.end();  // Close connection
-    return false;
-  }
-}
-bool sendDatasoilphToAPI(String jsonData) {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi not connected");
-    return false;
-  }
-
-  HTTPClient http;
-  http.begin(serverName7);  // Specify the API endpoint
-  http.addHeader("Content-Type", "application/json");  // Set content-type header
-
-  // Send HTTP POST request
-  int httpResponseCode = http.POST(jsonData);
-
-  // Check the response code
-  if (httpResponseCode > 0) {
-    String response = http.getString();  // Get server response
-    Serial.print("Response from server: ");
-    Serial.println(response);
-    http.end();  // Close connection
-    return true;
-  } else {
-    Serial.print("Error on sending POST: ");
-    Serial.println(httpResponseCode);
-    http.end();  // Close connection
-    return false;
-  }
-}
-bool sendDatahumidityToAPI(String jsonData) {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi not connected");
-    return false;
-  }
-
-  HTTPClient http;
-  http.begin(serverName6);  // Specify the API endpoint
-  http.addHeader("Content-Type", "application/json");  // Set content-type header
-
-  // Send HTTP POST request
-  int httpResponseCode = http.POST(jsonData);
-
-  // Check the response code
-  if (httpResponseCode > 0) {
-    String response = http.getString();  // Get server response
-    Serial.print("Response from server: ");
-    Serial.println(response);
-    http.end();  // Close connection
-    return true;
-  } else {
-    Serial.print("Error on sending POST: ");
-    Serial.println(httpResponseCode);
-    http.end();  // Close connection
-    return false;
-  }
-}
-bool sendDataimagesToAPI(String jsonData) {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi not connected");
-    return false;
-  }
-
-  HTTPClient http;
-  http.begin(serverName1);  // Specify the API endpoint
-  http.addHeader("Content-Type", "application/json");  // Set content-type header
-
-  // Send HTTP POST request
-  int httpResponseCode = http.POST(jsonData);
-
-  // Check the response code
-  if (httpResponseCode > 0) {
-    String response = http.getString();  // Get server response
-    Serial.print("Response from server: ");
-    Serial.println(response);
-    http.end();  // Close connection
-    return true;
-  } else {
-    Serial.print("Error on sending POST: ");
-    Serial.println(httpResponseCode);
-    http.end();  // Close connection
-    return false;
-  }
-}
-bool sendDatalocationToAPI(String jsonData) {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi not connected");
-    return false;
-  }
-
-  HTTPClient http;
-  http.begin(serverName2);  // Specify the API endpoint
-  http.addHeader("Content-Type", "application/json");  // Set content-type header
-
-  // Send HTTP POST request
-  int httpResponseCode = http.POST(jsonData);
-
-  // Check the response code
-  if (httpResponseCode > 0) {
-    String response = http.getString();  // Get server response
-    Serial.print("Response from server: ");
-    Serial.println(response);
-    http.end();  // Close connection
-    return true;
-  } else {
-    Serial.print("Error on sending POST: ");
-    Serial.println(httpResponseCode);
-    http.end();  // Close connection
-    return false;
-  }
-}
-bool sendDatatemperatureToAPI(String jsonData) {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi not connected");
-    return false;
-  }
-
-  HTTPClient http;
-  http.begin(serverName5);  // Specify the API endpoint
-  http.addHeader("Content-Type", "application/json");  // Set content-type header
-
-  // Send HTTP POST request
-  int httpResponseCode = http.POST(jsonData);
-
-  // Check the response code
-  if (httpResponseCode > 0) {
-    String response = http.getString();  // Get server response
-    Serial.print("Response from server: ");
-    Serial.println(response);
-    http.end();  // Close connection
-    return true;
-  } else {
-    Serial.print("Error on sending POST: ");
-    Serial.println(httpResponseCode);
-    http.end();  // Close connection
-    return false;
-  }
+  //delay(1000);  
 }
