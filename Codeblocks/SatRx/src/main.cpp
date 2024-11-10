@@ -507,8 +507,7 @@ void fetchData() {
 
     if (httpResponseCode > 0) {
       String response = http.getString(); 
-      Serial.println(httpResponseCode); // Print HTTP response code for debugging  
-      Serial.println(response);          // Print the raw JSON response
+      
 
       DynamicJsonDocument doc(1024); 
       DeserializationError error = deserializeJson(doc, response);
@@ -516,23 +515,24 @@ void fetchData() {
       if (!error) {
         if (!doc["command"].isNull()) {
           String command = doc["command"]; 
-          Serial.print("Command: ");
-          Serial.println(command);
-
-          command += '~';   // Add delimiter for mySerial communication
-          mySerial.println(command); // Send command to mySerial
           
-          delay(50); // Allow a moment for mySerial to respond
+
+          command = "command "+command+'~';  
+          Serial.println(command);
+          mySerial.println(command);
+          
+          delay(50); 
           
           if (mySerial.available()) {
             String status = mySerial.readStringUntil('~');
+            
             if (status == "received") {
-              mySerial.println(command); // Send command again if "received"
+              Serial.println("command sent successfully"); 
             }
           }
 
         } else {
-          Serial.println("Command is null or not available.");
+          Serial.println("No command");
         }
       } else {
         Serial.print("JSON Deserialization Error: ");
@@ -553,6 +553,19 @@ void loop() {
   if(millis() >= 10000){
       indicator1 = millis();
       fetchData();
+     
+  }
+  if(millis() >= 10000){
+      indicator1 = millis();
+      if (mySerial.available())
+      {
+        String message=mySerial.readStringUntil('~');
+        Serial.println(message);
+      }
+      else{
+        Serial.println("No message");
+      }
+      
      
   }
 
