@@ -33,7 +33,8 @@ const char* serverName11 = "https://agroxsat.onrender.com/backendapi/smoke/";
 char jsonPayload[10000];  // Buffer for received payload
 
 void setup() {
-  
+  Serial.begin(9600); 
+  mySerial.begin(9600); 
   digitalWrite(ledgreen,LOW);
   digitalWrite(ledred,LOW);
   digitalWrite(buzzer,LOW);
@@ -506,40 +507,29 @@ void fetchData() {
 
     if (httpResponseCode > 0) {
       String response = http.getString(); 
-      Serial.begin(9600);
-           
+      Serial.println(httpResponseCode); // Print HTTP response code for debugging  
+      Serial.println(response);          // Print the raw JSON response
 
       DynamicJsonDocument doc(1024); 
       DeserializationError error = deserializeJson(doc, response);
 
       if (!error) {
-        // Check if the command field exists and is not null
         if (!doc["command"].isNull()) {
           String command = doc["command"]; 
           Serial.print("Command: ");
           Serial.println(command);
-          Serial.end();
-          mySerial.begin(9600);
-          delay(10);
-          mySerial.println("command~");
-          mySerial.end();
-          command + "~";
-          Serial.begin(9600);
-          Serial.println(command);
-          Serial.end();
-          mySerial.begin(9600);
-          delay(50);
-          while (mySerial.available())
-          {
-            String status=mySerial.readStringUntil('~');
-            if (status=="received")
-            {
-              mySerial.println(command);
-            }
-            
-          }
+
+          command += '~';   // Add delimiter for mySerial communication
+          mySerial.println(command); // Send command to mySerial
           
-          mySerial.end();
+          delay(50); // Allow a moment for mySerial to respond
+          
+          if (mySerial.available()) {
+            String status = mySerial.readStringUntil('~');
+            if (status == "received") {
+              mySerial.println(command); // Send command again if "received"
+            }
+          }
 
         } else {
           Serial.println("Command is null or not available.");
@@ -558,7 +548,6 @@ void fetchData() {
     Serial.println("WiFi not connected");
   }
 }
-
 
 void loop() {
   if(millis() >= 10000){
