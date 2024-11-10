@@ -522,10 +522,12 @@ void fetchData() {
           mySerial.begin(9600);
           delay(10);
           mySerial.println("command~");
+          mySerial.end();
           command + "~";
           Serial.begin(9600);
           Serial.println(command);
           Serial.end();
+          mySerial.begin(9600);
           while (mySerial.available())
           {
             String status=mySerial.readStringUntil('~');
