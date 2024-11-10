@@ -4,6 +4,7 @@
 SoftwareSerial downlink(12, 13);
 SoftwareSerial OBCComms(18, 19);
 int commandready = 5;
+int transmitready = 21;
 int downlinkready = 2;
 int commandstatus = 4;
 int indicator1 = 0;
@@ -15,24 +16,30 @@ void setup()
   // downlink.begin(9600);
   // downlink.println();
   pinMode(commandready, INPUT_PULLUP);
+  pinMode(transmitready, INPUT_PULLUP);
   pinMode(downlinkready, OUTPUT);
   pinMode(commandstatus, OUTPUT);
 }
 
 void loop()
 {
-  if (millis() >= 20000)
+  if (millis() >= 5000)
   {
     indicator1 = millis();
-    digitalWrite(downlinkready, HIGH);
-    delay(3000);
-    OBCComms.begin(9600);
-    String message = OBCComms.readStringUntil('~');
-    OBCComms.end();
-    delay(50);
-    downlink.begin(9600);
-    downlink.println(message);
-    downlink.end();
+    int transmitstatus = digitalRead(transmitready);
+    if (transmitstatus == 1)
+    {
+      digitalWrite(downlinkready, HIGH);
+      delay(3000);
+      OBCComms.begin(9600);
+      String message = OBCComms.readStringUntil('~');
+      OBCComms.end();
+      delay(50);
+      downlink.begin(9600);
+      delay(50);
+      downlink.println(message);
+      downlink.end();
+    }
   }
   if (millis() >= 1000)
   {
