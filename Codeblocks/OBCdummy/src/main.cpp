@@ -25,6 +25,6 @@ void modeEmergency(){
   digitalWrite(status2,HIGH);
 }
 void loop() {
-  // put your main code here, to run repeatedly:
+  modeNormal();
 }
 
