@@ -517,7 +517,7 @@ void fetchData() {
           String command = doc["command"]; 
           
 
-          command = "command "+command+'~';  
+          command = "Cm "+command+'~';  
           Serial.println(command);
           mySerial.println(command);
           
