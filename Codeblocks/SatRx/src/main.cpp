@@ -18,8 +18,8 @@ SoftwareSerial mySerial(RX_PIN, TX_PIN);
 
 
 // Wi-Fi credentials
-const char* ssid = "Abdullahi";
-const char* password = "@Ahmed1234";
+const char* ssid = "Nyakanga";
+const char* password = "everydayiambuffering";
 const char* serverName1 = "https://agroxsat.onrender.com/backendapi/images/";
 const char* serverName2 = "https://agroxsat.onrender.com/backendapi/location/"; 
 const char* serverName4 = "https://agroxsat.onrender.com/backendapi/baseStation/";

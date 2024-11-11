@@ -28,21 +28,19 @@ void setup() {
 void loop() {
   static unsigned long lastTransmissionCheck = 0;
   static unsigned long lastcommandsignal = 0;
-  
-  //if (millis() - lastTransmissionCheck >= 5000) {
-  //  lastTransmissionCheck = millis();
-  //  if (downlink.available()) {
-  //    delay(50);
-  //    String command = downlink.readStringUntil('~');
-  //    command.remove(0,8);
-  //    Serial.println(command);
-  //    downlink.println("received~");
-  //  }
-  //   }
-    if (millis() - lastcommandsignal >= 1000)
+
+ 
+    if (millis() - lastTransmissionCheck >= 1000){
+      int sat=digitalRead(commandready);
+      Serial.println(sat);
+
+    }
+    if (millis() - lastcommandsignal >= 5000)
     {
       while(downlink.available()){
+
         String message=downlink.readStringUntil('~');
+        
         if (message.startsWith("Cm"))
         {
           digitalWrite(commandstatus,HIGH);
