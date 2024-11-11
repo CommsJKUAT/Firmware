@@ -3,6 +3,9 @@
 int status1 = 5;
 int status2 =18;
 int commandpin=4;
+
+
+
 volatile bool commandAvailable = false;
 
 void IRAM_ATTR handleCommandpin() {
@@ -25,15 +28,12 @@ void modeNormal(){
   digitalWrite(status1,LOW);
   digitalWrite(status2,LOW);
 }
-void modeidle(){
+
+void modeInitialisation(){
   digitalWrite(status1,LOW);
   digitalWrite(status2,LOW);
 }
-void modeSafe(){
-  digitalWrite(status1,LOW);
-  digitalWrite(status2,LOW);
-}
-void modeEmergency(){
+void modeCritical(){
   digitalWrite(status1,HIGH);
   digitalWrite(status2,HIGH);
 }
