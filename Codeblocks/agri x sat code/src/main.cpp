@@ -21,11 +21,14 @@ void setup() {
   pinMode(commandstatus, OUTPUT);
 
   Serial.println("Setup complete");
+  digitalWrite(commandstatus,LOW);
+
 }
 
 void loop() {
   static unsigned long lastTransmissionCheck = 0;
   static unsigned long lastcommandsignal = 0;
+  
   //if (millis() - lastTransmissionCheck >= 5000) {
   //  lastTransmissionCheck = millis();
   //  if (downlink.available()) {

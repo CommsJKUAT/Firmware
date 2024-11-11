@@ -11,6 +11,7 @@ void IRAM_ATTR handleCommandpin() {
   
 }
 void setup() {
+  Serial.begin(9600);
   pinMode(status1,OUTPUT);
   pinMode(status2,OUTPUT);
   pinMode(commandpin,INPUT_PULLUP);
