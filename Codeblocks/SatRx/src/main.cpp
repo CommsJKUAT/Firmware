@@ -555,14 +555,11 @@ void loop() {
       fetchData();
      
   }
-  if(millis() >= 10000){
-      indicator1 = millis();
-      while (mySerial.available())
+  while (mySerial.available())
       {
         String message=mySerial.readStringUntil('~');
         Serial.println(message);
       }
-  }
       
      
   }
