@@ -550,20 +550,19 @@ void fetchData() {
 }
 
 void loop() {
-  while (mySerial.available())
+  if(millis() >= 10000){
+      indicator1 = millis();
+      fetchData();
+     
+  }
+  if(millis() >= 10000){
+      indicator1 = millis();
+      while (mySerial.available())
       {
         String message=mySerial.readStringUntil('~');
         Serial.println(message);
       }
-  //if(millis() >= 10000){
-  //    indicator1 = millis();
-  //    fetchData();
-  //   
-  //}
-  //if(millis() >= 10000){
-  //    indicator1 = millis();
-  //    
-  //}
+  }
       
      
   }
