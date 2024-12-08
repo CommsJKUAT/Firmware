@@ -1,0 +1,64 @@
+#include <WiFi.h> // Use <ESP8266WiFi.h> for ESP8266
+#include <HTTPClient.h>
+#include <ArduinoJson.h> // Include the ArduinoJson library
+
+const char* ssid = "your_SSID";           // Your Wi-Fi SSID
+const char* password = "your_PASSWORD";   // Your Wi-Fi Password
+
+void setup() {
+  Serial.begin(115200);  // Start Serial communication at 115200 baud rate
+  WiFi.begin(ssid, password);  // Connect to Wi-Fi
+  
+  // Wait for connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+
+  Serial.println("Connected to WiFi");
+  fetchData();  // Call function to fetch data from API
+}
+
+void fetchData() {
+  if (WiFi.status() == WL_CONNECTED) { // Check if Wi-Fi is connected
+    HTTPClient http;
+
+    // Replace with your API endpoint
+    String url = "http://your_api_endpoint.com/api/command";
+    
+    http.begin(url);  // Specify the URL
+    int httpResponseCode = http.GET(); // Make the GET request
+
+    if (httpResponseCode > 0) {
+      String response = http.getString(); // Get the response payload
+      Serial.println(httpResponseCode);   // Print HTTP response code
+      Serial.println(response);            // Print the response payload
+
+      // Parse JSON data
+      DynamicJsonDocument doc(1024); // Create a DynamicJsonDocument
+      DeserializationError error = deserializeJson(doc, response);
+
+      if (!error) {
+        // Extract command
+        String command = doc["command"]; // Change to match your JSON structure
+        
+        Serial.print("Command: ");
+        Serial.println(command);
+      } else {
+        Serial.print("JSON Deserialization Error: ");
+        Serial.println(error.f_str());
+      }
+    } else {
+      Serial.print("Error on HTTP request: ");
+      Serial.println(httpResponseCode);
+    }
+
+    http.end(); // Close the connection
+  } else {
+    Serial.println("WiFi not connected");
+  }
+}
+
+void loop() {
+  // Your loop code here
+}
